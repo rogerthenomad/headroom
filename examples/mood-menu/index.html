@@ -16,8 +16,15 @@
         --accent-soft: #fbe9e1;
         --radius: 14px;
       }
+      /*
+       * Dark tokens are declared twice on purpose. The media query covers the
+       * default "follow the system" case, guarded so an explicit light choice
+       * still wins on a dark OS; the attribute selector covers a host that
+       * stamps a theme on the root element. Components only ever read tokens,
+       * never colours declared inside either block.
+       */
       @media (prefers-color-scheme: dark) {
-        :root {
+        :root:not([data-theme="light"]) {
           --bg: #171513;
           --surface: #201d1a;
           --ink: #f2ece5;
@@ -26,6 +33,15 @@
           --accent: #ef7f52;
           --accent-soft: #2f231d;
         }
+      }
+      :root[data-theme="dark"] {
+        --bg: #171513;
+        --surface: #201d1a;
+        --ink: #f2ece5;
+        --muted: #a2988c;
+        --line: #332e29;
+        --accent: #ef7f52;
+        --accent-soft: #2f231d;
       }
       * {
         box-sizing: border-box;
