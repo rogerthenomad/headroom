@@ -16,6 +16,8 @@ byte-identical results to omitting the field, so the app behaves exactly the sam
 anyone who isn't cycling, isn't tracking, or would simply rather not say. There is a
 test pinning that equivalence.
 
+**Live:** https://mood-menu-rogers-projects-123ca009.vercel.app
+
 ## Running it
 
 The app is plain HTML and ES modules, no build step and no dependencies. Because it
