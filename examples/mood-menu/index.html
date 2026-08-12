@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mood Menu</title>
+    <style>
+      /*
+       * The AI Cowboys brand system: dark-mode navy ground with pink, teal and
+       * gold accents. Dark is the primary expression, so the bare :root holds
+       * the dark palette and the light variant is the override — the mirror of
+       * the usual pattern, applied consistently across all three viewer states
+       * (system default, explicit light, explicit dark).
+       *
+       * Accent roles are fixed so colour carries meaning rather than decoration:
+       *   pink  -> action and current selection
+       *   teal  -> the reasoning behind a pick (why, nutrients)
+       *   gold  -> optional / advisory
+       */
+      :root {
+        color-scheme: dark light;
+        --bg: #0b1526;
+        --surface: #132238;
+        --surface-raised: #18293f;
+        --ink: #edf3fa;
+        --muted: #93a7c4;
+        --line: #22354f;
+        --accent: #ff3d7f;
+        --accent-ink: #0b1526;
+        --accent-soft: #2a1730;
+        --info: #34d3bc;
+        --info-soft: #10312f;
+        --advisory: #f2b134;
+        --advisory-soft: #2e2412;
+        --radius: 12px;
+        --tap: 44px;
+      }
+      @media (prefers-color-scheme: light) {
+        :root:not([data-theme="dark"]) {
+          --bg: #f4f7fb;
+          --surface: #ffffff;
+          --surface-raised: #ffffff;
+          --ink: #0b1526;
+          --muted: #54657f;
+          --line: #dbe3ee;
+          --accent: #c2185b;
+          --accent-ink: #ffffff;
+          --accent-soft: #fce7ef;
+          --info: #0b7a6e;
+          --info-soft: #e2f4f1;
+          --advisory: #8a6410;
+          --advisory-soft: #fbf1dc;
+        }
+      }
+      :root[data-theme="light"] {
+        --bg: #f4f7fb;
+        --surface: #ffffff;
+        --surface-raised: #ffffff;
+        --ink: #0b1526;
+        --muted: #54657f;
+        --line: #dbe3ee;
+        --accent: #c2185b;
+        --accent-ink: #ffffff;
+        --accent-soft: #fce7ef;
+        --info: #0b7a6e;
+        --info-soft: #e2f4f1;
+        --advisory: #8a6410;
+        --advisory-soft: #fbf1dc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 1.5rem) 4rem;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.55 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        -webkit-text-size-adjust: 100%;
+      }
+      main {
+        max-width: 46rem;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: clamp(1.5rem, 4vw, 2.25rem);
+      }
+
+      /* ---- Brand mark ------------------------------------------------- */
+      .wordmark {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .wordmark::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
+      .wordmark b {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      h1 {
+        font-size: clamp(2.1rem, 8vw, 3.1rem);
+        line-height: 1.02;
+        letter-spacing: -0.035em;
+        font-weight: 800;
+        margin: 0;
+        text-wrap: balance;
+      }
+      .lede {
+        margin: 0;
+        font-size: clamp(1rem, 3.4vw, 1.15rem);
+        font-weight: 600;
+        color: var(--ink);
+      }
+      header .intro {
+        margin: 0;
+        color: var(--muted);
+        max-width: 40ch;
+      }
+
+      /* ---- Form ------------------------------------------------------- */
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(1.25rem, 4vw, 1.75rem);
+      }
+      fieldset {
+        border: 0;
+        margin: 0;
+        padding: 0;
+        min-width: 0;
+      }
+      legend {
+        padding: 0;
+        width: 100%;
+      }
+      h2 {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.13em;
+        font-weight: 700;
+        color: var(--muted);
+        margin: 0 0 0.7rem;
+      }
+      .optional {
+        display: inline-block;
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        padding: 0.15rem 0.45rem;
+        margin-left: 0.4rem;
+        border-radius: 4px;
+        background: var(--advisory-soft);
+        color: var(--advisory);
+        vertical-align: 0.08em;
+      }
+      .row {
+        display: grid;
+        gap: clamp(1.25rem, 4vw, 1.75rem);
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+      }
+      /*
+       * A grid rather than wrapped flex: equal-width chips keep the option
+       * groups scannable as columns, and the track count falls out of the
+       * available width instead of the label lengths.
+       */
+      .chips {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+        gap: 0.5rem;
+      }
+      .chip {
+        position: relative;
+      }
+      /* Visually hidden but still focusable, so the label drives the control. */
+      .chip input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: 0;
+        opacity: 0;
+      }
+      .chip span {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        /* Every chip is a touch target first: never shorter than a thumb. */
+        min-height: var(--tap);
+        padding: 0.5rem 0.9rem;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        cursor: pointer;
+        transition:
+          border-color 0.12s,
+          background 0.12s,
+          color 0.12s;
+      }
+      .chip input:checked + span {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 650;
+      }
+      .chip input:focus-visible + span {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .chip small {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .chip input:checked + span small {
+        color: var(--accent);
+      }
+
+      button.go {
+        width: 100%;
+        min-height: var(--tap);
+        padding: 0.95rem 1rem;
+        font: inherit;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: var(--accent-ink);
+        background: var(--accent);
+        border: 0;
+        border-radius: var(--radius);
+        cursor: pointer;
+      }
+      button.go:hover {
+        filter: brightness(1.08);
+      }
+      button.go:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 3px;
+      }
+
+      /* ---- Result ----------------------------------------------------- */
+      .card {
+        padding: clamp(1.1rem, 4vw, 1.6rem);
+        background: var(--surface-raised);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+      }
+      .card h3 {
+        margin: 0.2rem 0 0.4rem;
+        font-size: clamp(1.3rem, 5vw, 1.6rem);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+      }
+      .card .blurb {
+        margin: 0 0 0.9rem;
+        color: var(--muted);
+      }
+      .card .why {
+        margin: 0 0 1.1rem;
+        padding-left: 0.85rem;
+        border-left: 3px solid var(--info);
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 1.1rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .meta span {
+        font-size: 0.78rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--muted);
+      }
+      .note {
+        font-size: 0.87rem;
+        color: var(--muted);
+        margin: 0 0 0.75rem;
+      }
+      .note.nutrients {
+        color: var(--info);
+      }
+      .note.relaxed {
+        color: var(--advisory);
+      }
+      .alts {
+        margin: 0.35rem 0 0;
+        padding: 0.9rem 0 0;
+        list-style: none;
+        border-top: 1px solid var(--line);
+      }
+      .alts li {
+        font-size: 0.9rem;
+        color: var(--muted);
+        padding: 0.15rem 0;
+      }
+      button.again {
+        margin-top: 1rem;
+        min-height: var(--tap);
+        padding: 0.6rem 1.1rem;
+        font: inherit;
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        border-radius: var(--radius);
+        cursor: pointer;
+      }
+      button.again:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 3px;
+      }
+
+      footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        justify-content: space-between;
+        align-items: baseline;
+        border-top: 1px solid var(--line);
+        padding-top: 1.1rem;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      footer p {
+        margin: 0;
+        max-width: 46ch;
+      }
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      /*
+       * Phones: pin to two columns. One per row would clear the 44px target
+       * just as well but turns a dozen moods into a very long scroll.
+       */
+      @media (max-width: 30rem) {
+        .chips {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.45rem;
+        }
+        .chip span {
+          padding: 0.5rem 0.7rem;
+        }
+        footer {
+          flex-direction: column;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="wordmark">The <b>AI Cowboys</b></p>
+        <h1>Mood Menu</h1>
+        <p class="lede">Food that meets you where you are.</p>
+        <p class="intro">
+          Say how you feel and what you've actually got — time, energy, patience — and
+          get one answer instead of forty. There's an optional cycle question too; answer
+          it and the results lean toward the iron, magnesium and slow carbs that week
+          calls for, skip it and nothing changes.
+        </p>
+      </header>
+
+      <form id="form">
+        <fieldset>
+          <legend><h2>How are you feeling?</h2></legend>
+          <div class="chips" id="moods"></div>
+        </fieldset>
+
+        <div class="row">
+          <fieldset>
+            <legend><h2>Time you have</h2></legend>
+            <div class="chips" id="time"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend><h2>Energy for cooking</h2></legend>
+            <div class="chips" id="effort"></div>
+          </fieldset>
+        </div>
+
+        <div class="row">
+          <fieldset>
+            <legend><h2>How hungry</h2></legend>
+            <div class="chips" id="size"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend><h2>Anything off the table</h2></legend>
+            <div class="chips" id="diets"></div>
+          </fieldset>
+        </div>
+
+        <fieldset>
+          <legend>
+            <h2>Where you are in your cycle <span class="optional">optional</span></h2>
+          </legend>
+          <div class="chips" id="cycle"></div>
+        </fieldset>
+
+        <button class="go" type="submit">Tell me what to eat</button>
+      </form>
+
+      <div id="result" aria-live="polite"></div>
+
+      <footer>
+        <p>
+          Suggestions, not nutrition or medical advice. If you're unwell, or eating has
+          started to feel like a fight, talk to someone who can actually help.
+        </p>
+        <a href="https://www.theaicowboys.com">www.theaicowboys.com</a>
+      </footer>
+    </main>
+
+    <script type="module">
+      import { MOODS, DIETS, CYCLE_PHASES } from "./dishes.js";
+      import { pick } from "./engine.js";
+
+      const NUTRIENT_LABELS = {
+        iron: "iron",
+        protein: "protein",
+        magnesium: "magnesium",
+        calcium: "calcium",
+        folate: "folate",
+        fibre: "fibre",
+        omega3: "omega-3s",
+        complexCarbs: "slow carbs",
+      };
+
+      const TIMES = [
+        { value: 5, label: "5 min", hint: "no cooking" },
+        { value: 15, label: "15 min", hint: "quick" },
+        { value: 30, label: "30 min", hint: "normal" },
+        { value: 90, label: "All evening", hint: "take your time" },
+      ];
+      const EFFORTS = [
+        { value: 0, label: "None", hint: "unwrap it" },
+        { value: 1, label: "A little", hint: "assemble" },
+        { value: 2, label: "Some", hint: "light cooking" },
+        { value: 3, label: "Plenty", hint: "properly cook" },
+      ];
+      const SIZES = [
+        { value: "snack", label: "Snackish" },
+        { value: "meal", label: "Proper meal" },
+        { value: "any", label: "Either" },
+      ];
+
+      /** Builds a chip group; `type` is "radio" or "checkbox". */
+      function chips(host, name, type, items, checkedValue) {
+        host.innerHTML = items
+          .map(({ value, label, hint }) => {
+            const checked = type === "radio" && String(value) === String(checkedValue);
+            return `<label class="chip">
+              <input type="${type}" name="${name}" value="${value}"${checked ? " checked" : ""} />
+              <span>${label}${hint ? `<small>${hint}</small>` : ""}</span>
+            </label>`;
+          })
+          .join("");
+      }
+
+      const asItems = (list) => list.map((m) => ({ value: m.id, label: m.label, hint: m.hint }));
+
+      chips(document.getElementById("moods"), "mood", "radio", asItems(MOODS));
+      chips(document.getElementById("time"), "minutes", "radio", TIMES, 30);
+      chips(document.getElementById("effort"), "effort", "radio", EFFORTS, 2);
+      chips(document.getElementById("size"), "size", "radio", SIZES, "any");
+      chips(document.getElementById("diets"), "diets", "checkbox", asItems(DIETS));
+      chips(document.getElementById("cycle"), "cycle", "radio", asItems(CYCLE_PHASES), "none");
+
+      const form = document.getElementById("form");
+      const resultEl = document.getElementById("result");
+      const recentlyShown = [];
+
+      function readRequest() {
+        const data = new FormData(form);
+        return {
+          mood: data.get("mood"),
+          minutes: Number(data.get("minutes")),
+          effort: Number(data.get("effort")),
+          size: data.get("size"),
+          diets: data.getAll("diets"),
+          cycle: data.get("cycle"),
+          exclude: recentlyShown,
+        };
+      }
+
+      function render(request) {
+        if (!request.mood) {
+          resultEl.innerHTML = `<div class="card"><p class="note">Pick a mood first — that's the whole trick.</p></div>`;
+          return;
+        }
+
+        const result = pick(request);
+        if (!result) {
+          resultEl.innerHTML = `<div class="card">
+            <h3>Nothing in the book fits that</h3>
+            <p class="blurb">Those dietary constraints rule out every dish here. Loosen one, or eat the
+            most appealing thing within arm's reach — that is a legitimate answer.</p>
+          </div>`;
+          return;
+        }
+
+        const { dish, alternatives, relaxed, nutrients } = result;
+        recentlyShown.push(dish.id);
+        if (recentlyShown.length > 4) recentlyShown.shift();
+
+        const effortWords = ["no cooking", "assembly only", "light cooking", "real cooking"];
+        resultEl.innerHTML = `<div class="card">
+          <h2>Eat this</h2>
+          <h3>${dish.name}</h3>
+          <p class="blurb">${dish.blurb}</p>
+          <div class="meta">
+            <span>${dish.minutes} min</span>
+            <span>${effortWords[dish.effort]}</span>
+            <span>${dish.size === "snack" ? "snack" : "full meal"}</span>
+          </div>
+          <p class="why">${dish.why}</p>
+          ${
+            nutrients.length
+              ? `<p class="note nutrients">Good for this week: ${nutrients
+                  .map((n) => NUTRIENT_LABELS[n] ?? n)
+                  .join(", ")}.</p>`
+              : ""
+          }
+          ${relaxed.length ? `<p class="note relaxed">Nothing matched exactly, so this is ${relaxed.join(" and ")}.</p>` : ""}
+          ${
+            alternatives.length
+              ? `<ul class="alts">${alternatives
+                  .map((alt) => `<li>Or: ${alt.dish.name}</li>`)
+                  .join("")}</ul>`
+              : ""
+          }
+          <button class="again" type="button" id="again">Something else</button>
+        </div>`;
+
+        document.getElementById("again").addEventListener("click", () => render(readRequest()));
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        recentlyShown.length = 0;
+        render(readRequest());
+      });
+    </script>
+  </body>
+</html>
