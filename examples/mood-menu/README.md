@@ -81,6 +81,34 @@ are worth a doctor's time, not a dinner suggestion.
 list. All the randomness lives in `pick()`, which takes an injectable rng so the tests
 can pin it.
 
+## Design
+
+The page carries The AI Cowboys brand system: a dark-mode navy ground with pink, teal
+and gold accents. Dark is the primary expression, so `:root` holds the dark palette and
+the light variant is the override — the mirror of the usual pattern, applied
+consistently across all three viewer states (system default, explicit light, explicit
+dark) so a stamped `data-theme` and a bare `prefers-color-scheme` both resolve
+correctly.
+
+Accent roles are fixed so colour carries meaning rather than decoration:
+
+| Token       | Role                                              |
+| ----------- | ------------------------------------------------- |
+| `--accent`  | pink — action and current selection                |
+| `--info`    | teal — the reasoning behind a pick (why, nutrients) |
+| `--advisory`| gold — optional and advisory notes                 |
+
+**The hex values are derived, not official.** They come from the brand system described
+in the RODEO visual-direction reference (dark mode navy, pink, teal, gold); the exact
+corporate hexes weren't reachable from this environment. Swap the token values at the
+top of `index.html` for the real ones and everything else follows — nothing outside the
+`:root` blocks names a colour directly. The same goes for typography: the brand's type
+system isn't specified here, so the page uses a system sans stack.
+
+Layout is responsive without a framework: a single column capped at `46rem`, option
+chips on an auto-fitting grid that lands four across on desktop and two on phones, and
+a `44px` minimum on every tap target.
+
 ## Files
 
 | File              | What it is                                                 |

@@ -5,100 +5,188 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Mood Menu</title>
     <style>
-      :root {
-        color-scheme: light dark;
-        --bg: #fbf7f2;
-        --surface: #ffffff;
-        --ink: #1d1a17;
-        --muted: #6c6259;
-        --line: #e6ddd2;
-        --accent: #b4491f;
-        --accent-soft: #fbe9e1;
-        --radius: 14px;
-      }
       /*
-       * Dark tokens are declared twice on purpose. The media query covers the
-       * default "follow the system" case, guarded so an explicit light choice
-       * still wins on a dark OS; the attribute selector covers a host that
-       * stamps a theme on the root element. Components only ever read tokens,
-       * never colours declared inside either block.
+       * The AI Cowboys brand system: dark-mode navy ground with pink, teal and
+       * gold accents. Dark is the primary expression, so the bare :root holds
+       * the dark palette and the light variant is the override — the mirror of
+       * the usual pattern, applied consistently across all three viewer states
+       * (system default, explicit light, explicit dark).
+       *
+       * Accent roles are fixed so colour carries meaning rather than decoration:
+       *   pink  -> action and current selection
+       *   teal  -> the reasoning behind a pick (why, nutrients)
+       *   gold  -> optional / advisory
        */
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme="light"]) {
-          --bg: #171513;
-          --surface: #201d1a;
-          --ink: #f2ece5;
-          --muted: #a2988c;
-          --line: #332e29;
-          --accent: #ef7f52;
-          --accent-soft: #2f231d;
+      :root {
+        color-scheme: dark light;
+        --bg: #0b1526;
+        --surface: #132238;
+        --surface-raised: #18293f;
+        --ink: #edf3fa;
+        --muted: #93a7c4;
+        --line: #22354f;
+        --accent: #ff3d7f;
+        --accent-ink: #0b1526;
+        --accent-soft: #2a1730;
+        --info: #34d3bc;
+        --info-soft: #10312f;
+        --advisory: #f2b134;
+        --advisory-soft: #2e2412;
+        --radius: 12px;
+        --tap: 44px;
+      }
+      @media (prefers-color-scheme: light) {
+        :root:not([data-theme="dark"]) {
+          --bg: #f4f7fb;
+          --surface: #ffffff;
+          --surface-raised: #ffffff;
+          --ink: #0b1526;
+          --muted: #54657f;
+          --line: #dbe3ee;
+          --accent: #c2185b;
+          --accent-ink: #ffffff;
+          --accent-soft: #fce7ef;
+          --info: #0b7a6e;
+          --info-soft: #e2f4f1;
+          --advisory: #8a6410;
+          --advisory-soft: #fbf1dc;
         }
       }
-      :root[data-theme="dark"] {
-        --bg: #171513;
-        --surface: #201d1a;
-        --ink: #f2ece5;
-        --muted: #a2988c;
-        --line: #332e29;
-        --accent: #ef7f52;
-        --accent-soft: #2f231d;
+      :root[data-theme="light"] {
+        --bg: #f4f7fb;
+        --surface: #ffffff;
+        --surface-raised: #ffffff;
+        --ink: #0b1526;
+        --muted: #54657f;
+        --line: #dbe3ee;
+        --accent: #c2185b;
+        --accent-ink: #ffffff;
+        --accent-soft: #fce7ef;
+        --info: #0b7a6e;
+        --info-soft: #e2f4f1;
+        --advisory: #8a6410;
+        --advisory-soft: #fbf1dc;
       }
+
       * {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        padding: 2.5rem 1.25rem 4rem;
+        padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 1.5rem) 4rem;
         background: var(--bg);
         color: var(--ink);
-        font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        font:
+          16px/1.55 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        -webkit-text-size-adjust: 100%;
       }
       main {
         max-width: 46rem;
         margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: clamp(1.5rem, 4vw, 2.25rem);
       }
-      header p {
+
+      /* ---- Brand mark ------------------------------------------------- */
+      .wordmark {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
         color: var(--muted);
-        max-width: 34rem;
       }
-      header .lede {
-        color: var(--accent);
-        font-weight: 600;
-        margin-bottom: 0.35rem;
+      .wordmark::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--line);
       }
-      .optional {
-        font-size: 0.72rem;
-        letter-spacing: 0.02em;
-        text-transform: none;
-        padding: 0.1rem 0.45rem;
-        margin-left: 0.35rem;
-        border-radius: 999px;
-        background: var(--accent-soft);
+      .wordmark b {
         color: var(--accent);
+        font-weight: 700;
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
       }
       h1 {
-        font-size: clamp(2rem, 6vw, 2.75rem);
-        margin: 0 0 0.35rem;
-        letter-spacing: -0.02em;
+        font-size: clamp(2.1rem, 8vw, 3.1rem);
+        line-height: 1.02;
+        letter-spacing: -0.035em;
+        font-weight: 800;
+        margin: 0;
+        text-wrap: balance;
       }
-      h2 {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.09em;
+      .lede {
+        margin: 0;
+        font-size: clamp(1rem, 3.4vw, 1.15rem);
+        font-weight: 600;
+        color: var(--ink);
+      }
+      header .intro {
+        margin: 0;
         color: var(--muted);
-        margin: 0 0 0.6rem;
+        max-width: 40ch;
+      }
+
+      /* ---- Form ------------------------------------------------------- */
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(1.25rem, 4vw, 1.75rem);
       }
       fieldset {
         border: 0;
-        margin: 0 0 1.6rem;
+        margin: 0;
         padding: 0;
+        min-width: 0;
       }
       legend {
         padding: 0;
+        width: 100%;
       }
+      h2 {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.13em;
+        font-weight: 700;
+        color: var(--muted);
+        margin: 0 0 0.7rem;
+      }
+      .optional {
+        display: inline-block;
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        padding: 0.15rem 0.45rem;
+        margin-left: 0.4rem;
+        border-radius: 4px;
+        background: var(--advisory-soft);
+        color: var(--advisory);
+        vertical-align: 0.08em;
+      }
+      .row {
+        display: grid;
+        gap: clamp(1.25rem, 4vw, 1.75rem);
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+      }
+      /*
+       * A grid rather than wrapped flex: equal-width chips keep the option
+       * groups scannable as columns, and the track count falls out of the
+       * available width instead of the label lengths.
+       */
       .chips {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
         gap: 0.5rem;
       }
       .chip {
@@ -113,19 +201,26 @@
         opacity: 0;
       }
       .chip span {
-        display: block;
-        padding: 0.5rem 0.85rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        /* Every chip is a touch target first: never shorter than a thumb. */
+        min-height: var(--tap);
+        padding: 0.5rem 0.9rem;
         border: 1px solid var(--line);
-        border-radius: 999px;
+        border-radius: var(--radius);
         background: var(--surface);
         cursor: pointer;
-        transition: border-color 0.12s, background 0.12s;
+        transition:
+          border-color 0.12s,
+          background 0.12s,
+          color 0.12s;
       }
       .chip input:checked + span {
         border-color: var(--accent);
         background: var(--accent-soft);
         color: var(--accent);
-        font-weight: 600;
+        font-weight: 650;
       }
       .chip input:focus-visible + span {
         outline: 2px solid var(--accent);
@@ -140,36 +235,41 @@
       .chip input:checked + span small {
         color: var(--accent);
       }
-      .row {
-        display: grid;
-        gap: 1.25rem;
-        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-      }
+
       button.go {
         width: 100%;
-        padding: 0.9rem;
+        min-height: var(--tap);
+        padding: 0.95rem 1rem;
         font: inherit;
-        font-weight: 650;
-        color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: var(--accent-ink);
         background: var(--accent);
         border: 0;
         border-radius: var(--radius);
         cursor: pointer;
       }
       button.go:hover {
-        filter: brightness(1.07);
+        filter: brightness(1.08);
       }
+      button.go:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 3px;
+      }
+
+      /* ---- Result ----------------------------------------------------- */
       .card {
-        margin-top: 2rem;
-        padding: 1.5rem;
-        background: var(--surface);
+        padding: clamp(1.1rem, 4vw, 1.6rem);
+        background: var(--surface-raised);
         border: 1px solid var(--line);
         border-radius: var(--radius);
       }
       .card h3 {
         margin: 0.2rem 0 0.4rem;
-        font-size: 1.5rem;
-        letter-spacing: -0.01em;
+        font-size: clamp(1.3rem, 5vw, 1.6rem);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        text-wrap: balance;
       }
       .card .blurb {
         margin: 0 0 0.9rem;
@@ -178,32 +278,39 @@
       .card .why {
         margin: 0 0 1.1rem;
         padding-left: 0.85rem;
-        border-left: 3px solid var(--accent);
+        border-left: 3px solid var(--info);
       }
       .meta {
         display: flex;
         flex-wrap: wrap;
         gap: 0.4rem;
         margin-bottom: 1.1rem;
+        font-variant-numeric: tabular-nums;
       }
       .meta span {
         font-size: 0.78rem;
         padding: 0.2rem 0.6rem;
         border-radius: 999px;
-        background: var(--accent-soft);
-        color: var(--accent);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--muted);
       }
       .note {
-        font-size: 0.85rem;
+        font-size: 0.87rem;
         color: var(--muted);
-        margin: 0 0 1rem;
+        margin: 0 0 0.75rem;
+      }
+      .note.nutrients {
+        color: var(--info);
+      }
+      .note.relaxed {
+        color: var(--advisory);
       }
       .alts {
-        margin: 0;
-        padding: 0;
+        margin: 0.35rem 0 0;
+        padding: 0.9rem 0 0;
         list-style: none;
         border-top: 1px solid var(--line);
-        padding-top: 0.9rem;
       }
       .alts li {
         font-size: 0.9rem;
@@ -212,27 +319,78 @@
       }
       button.again {
         margin-top: 1rem;
-        padding: 0.55rem 1rem;
+        min-height: var(--tap);
+        padding: 0.6rem 1.1rem;
         font: inherit;
         background: transparent;
         color: var(--accent);
         border: 1px solid var(--accent);
-        border-radius: 999px;
+        border-radius: var(--radius);
         cursor: pointer;
       }
+      button.again:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 3px;
+      }
+
       footer {
-        margin-top: 2.5rem;
-        font-size: 0.85rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        justify-content: space-between;
+        align-items: baseline;
+        border-top: 1px solid var(--line);
+        padding-top: 1.1rem;
+        font-size: 0.82rem;
         color: var(--muted);
+      }
+      footer p {
+        margin: 0;
+        max-width: 46ch;
+      }
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      /*
+       * Phones: pin to two columns. One per row would clear the 44px target
+       * just as well but turns a dozen moods into a very long scroll.
+       */
+      @media (max-width: 30rem) {
+        .chips {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.45rem;
+        }
+        .chip span {
+          padding: 0.5rem 0.7rem;
+        }
+        footer {
+          flex-direction: column;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
       }
     </style>
   </head>
   <body>
     <main>
       <header>
+        <p class="wordmark">The <b>AI Cowboys</b></p>
         <h1>Mood Menu</h1>
         <p class="lede">Food that meets you where you are.</p>
-        <p>
+        <p class="intro">
           Say how you feel and what you've actually got — time, energy, patience — and
           get one answer instead of forty. There's an optional cycle question too; answer
           it and the results lean toward the iron, magnesium and slow carbs that week
@@ -283,8 +441,11 @@
       <div id="result" aria-live="polite"></div>
 
       <footer>
-        Suggestions, not nutrition or medical advice. If you're unwell, or eating has
-        started to feel like a fight, talk to someone who can actually help.
+        <p>
+          Suggestions, not nutrition or medical advice. If you're unwell, or eating has
+          started to feel like a fight, talk to someone who can actually help.
+        </p>
+        <a href="https://www.theaicowboys.com">www.theaicowboys.com</a>
       </footer>
     </main>
 
@@ -393,12 +554,12 @@
           <p class="why">${dish.why}</p>
           ${
             nutrients.length
-              ? `<p class="note">Good for this week: ${nutrients
+              ? `<p class="note nutrients">Good for this week: ${nutrients
                   .map((n) => NUTRIENT_LABELS[n] ?? n)
                   .join(", ")}.</p>`
               : ""
           }
-          ${relaxed.length ? `<p class="note">Nothing matched exactly, so this is ${relaxed.join(" and ")}.</p>` : ""}
+          ${relaxed.length ? `<p class="note relaxed">Nothing matched exactly, so this is ${relaxed.join(" and ")}.</p>` : ""}
           ${
             alternatives.length
               ? `<ul class="alts">${alternatives
