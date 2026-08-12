@@ -5,16 +5,16 @@ you eat?* You pick a mood and say what you actually have — time, energy for co
 how hungry you are, any dietary lines you don't cross — and it names one dish, with a
 sentence explaining why that dish suits that mood.
 
-It is built for women, which shows up in the substance rather than the styling:
-moods for cramping and bloating alongside the usual ten, dishes tagged with the
-nutrients that matter most across a cycle, and an optional cycle-phase input that
-weights the results toward iron, magnesium and slow carbs when that week calls for
-them.
+It is built for everyone. Decision fatigue at dinnertime is not particular to any one
+kind of person, and neither is wanting a warm bowl of something when you feel rough.
 
-The cycle question is genuinely optional. `none` is the default, carries no weighting
-at all, and produces byte-identical results to omitting the field — so the app works
-exactly the same for anyone who isn't tracking, isn't cycling, or would simply rather
-not say. There is a test pinning that.
+Some of what it knows applies to some people and not others, so those parts are opt-in
+rather than assumed. Cramping and bloating sit in the mood list next to stressed and
+drained — anyone can have either, for any reason. The cycle question is genuinely
+optional: `none` is the default, carries no weighting at all, and produces
+byte-identical results to omitting the field, so the app behaves exactly the same for
+anyone who isn't cycling, isn't tracking, or would simply rather not say. There is a
+test pinning that equivalence.
 
 ## Running it
 
@@ -66,10 +66,10 @@ Worth being straight about, since the weights are visible in `engine.js` and som
 will ask:
 
 - **Iron during menstruation** is the best-supported entry. Iron is lost with
-  menstrual bleeding, and women of reproductive age have a substantially higher daily
-  iron requirement than men — this one is uncontroversial.
-- **Calcium, folate and omega-3s** are weighted because women's intakes commonly fall
-  short of recommendations, not because of anything phase-specific.
+  menstrual bleeding, and people who menstruate have a substantially higher daily iron
+  requirement as a result — this one is uncontroversial.
+- **Calcium, folate and omega-3s** are weighted because intakes of all three commonly
+  fall short of recommendations, not because of anything phase-specific.
 - **Luteal magnesium and slow carbs** reflect common dietary practice for PMS
   symptoms. The evidence there is mixed and mostly from small trials — treat it as a
   reasonable nudge, not a finding.
