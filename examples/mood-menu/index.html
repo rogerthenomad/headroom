@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mood Menu</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #fbf7f2;
+        --surface: #ffffff;
+        --ink: #1d1a17;
+        --muted: #6c6259;
+        --line: #e6ddd2;
+        --accent: #b4491f;
+        --accent-soft: #fbe9e1;
+        --radius: 14px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #171513;
+          --surface: #201d1a;
+          --ink: #f2ece5;
+          --muted: #a2988c;
+          --line: #332e29;
+          --accent: #ef7f52;
+          --accent-soft: #2f231d;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 2.5rem 1.25rem 4rem;
+        background: var(--bg);
+        color: var(--ink);
+        font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      main {
+        max-width: 46rem;
+        margin: 0 auto;
+      }
+      header p {
+        color: var(--muted);
+        max-width: 34rem;
+      }
+      h1 {
+        font-size: clamp(2rem, 6vw, 2.75rem);
+        margin: 0 0 0.35rem;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        color: var(--muted);
+        margin: 0 0 0.6rem;
+      }
+      fieldset {
+        border: 0;
+        margin: 0 0 1.6rem;
+        padding: 0;
+      }
+      legend {
+        padding: 0;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .chip {
+        position: relative;
+      }
+      /* Visually hidden but still focusable, so the label drives the control. */
+      .chip input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: 0;
+        opacity: 0;
+      }
+      .chip span {
+        display: block;
+        padding: 0.5rem 0.85rem;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--surface);
+        cursor: pointer;
+        transition: border-color 0.12s, background 0.12s;
+      }
+      .chip input:checked + span {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .chip input:focus-visible + span {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .chip small {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .chip input:checked + span small {
+        color: var(--accent);
+      }
+      .row {
+        display: grid;
+        gap: 1.25rem;
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+      }
+      button.go {
+        width: 100%;
+        padding: 0.9rem;
+        font: inherit;
+        font-weight: 650;
+        color: #fff;
+        background: var(--accent);
+        border: 0;
+        border-radius: var(--radius);
+        cursor: pointer;
+      }
+      button.go:hover {
+        filter: brightness(1.07);
+      }
+      .card {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+      }
+      .card h3 {
+        margin: 0.2rem 0 0.4rem;
+        font-size: 1.5rem;
+        letter-spacing: -0.01em;
+      }
+      .card .blurb {
+        margin: 0 0 0.9rem;
+        color: var(--muted);
+      }
+      .card .why {
+        margin: 0 0 1.1rem;
+        padding-left: 0.85rem;
+        border-left: 3px solid var(--accent);
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 1.1rem;
+      }
+      .meta span {
+        font-size: 0.78rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .note {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin: 0 0 1rem;
+      }
+      .alts {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--line);
+        padding-top: 0.9rem;
+      }
+      .alts li {
+        font-size: 0.9rem;
+        color: var(--muted);
+        padding: 0.15rem 0;
+      }
+      button.again {
+        margin-top: 1rem;
+        padding: 0.55rem 1rem;
+        font: inherit;
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      footer {
+        margin-top: 2.5rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Mood Menu</h1>
+        <p>
+          Hungry, and the deciding is the hard part? Say how you feel and what you've
+          actually got — time, energy, patience — and get one answer instead of forty.
+        </p>
+      </header>
+
+      <form id="form">
+        <fieldset>
+          <legend><h2>How are you feeling?</h2></legend>
+          <div class="chips" id="moods"></div>
+        </fieldset>
+
+        <div class="row">
+          <fieldset>
+            <legend><h2>Time you have</h2></legend>
+            <div class="chips" id="time"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend><h2>Energy for cooking</h2></legend>
+            <div class="chips" id="effort"></div>
+          </fieldset>
+        </div>
+
+        <div class="row">
+          <fieldset>
+            <legend><h2>How hungry</h2></legend>
+            <div class="chips" id="size"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend><h2>Anything off the table</h2></legend>
+            <div class="chips" id="diets"></div>
+          </fieldset>
+        </div>
+
+        <button class="go" type="submit">Tell me what to eat</button>
+      </form>
+
+      <div id="result" aria-live="polite"></div>
+
+      <footer>
+        Suggestions, not nutrition or medical advice. If you're unwell, or eating has
+        started to feel like a fight, talk to someone who can actually help.
+      </footer>
+    </main>
+
+    <script type="module">
+      import { MOODS, DIETS } from "./dishes.js";
+      import { pick } from "./engine.js";
+
+      const TIMES = [
+        { value: 5, label: "5 min", hint: "no cooking" },
+        { value: 15, label: "15 min", hint: "quick" },
+        { value: 30, label: "30 min", hint: "normal" },
+        { value: 90, label: "All evening", hint: "take your time" },
+      ];
+      const EFFORTS = [
+        { value: 0, label: "None", hint: "unwrap it" },
+        { value: 1, label: "A little", hint: "assemble" },
+        { value: 2, label: "Some", hint: "light cooking" },
+        { value: 3, label: "Plenty", hint: "properly cook" },
+      ];
+      const SIZES = [
+        { value: "snack", label: "Snackish" },
+        { value: "meal", label: "Proper meal" },
+        { value: "any", label: "Either" },
+      ];
+
+      /** Builds a chip group; `type` is "radio" or "checkbox". */
+      function chips(host, name, type, items, checkedValue) {
+        host.innerHTML = items
+          .map(({ value, label, hint }) => {
+            const checked = type === "radio" && String(value) === String(checkedValue);
+            return `<label class="chip">
+              <input type="${type}" name="${name}" value="${value}"${checked ? " checked" : ""} />
+              <span>${label}${hint ? `<small>${hint}</small>` : ""}</span>
+            </label>`;
+          })
+          .join("");
+      }
+
+      const asItems = (list) => list.map((m) => ({ value: m.id, label: m.label, hint: m.hint }));
+
+      chips(document.getElementById("moods"), "mood", "radio", asItems(MOODS));
+      chips(document.getElementById("time"), "minutes", "radio", TIMES, 30);
+      chips(document.getElementById("effort"), "effort", "radio", EFFORTS, 2);
+      chips(document.getElementById("size"), "size", "radio", SIZES, "any");
+      chips(document.getElementById("diets"), "diets", "checkbox", asItems(DIETS));
+
+      const form = document.getElementById("form");
+      const resultEl = document.getElementById("result");
+      const recentlyShown = [];
+
+      function readRequest() {
+        const data = new FormData(form);
+        return {
+          mood: data.get("mood"),
+          minutes: Number(data.get("minutes")),
+          effort: Number(data.get("effort")),
+          size: data.get("size"),
+          diets: data.getAll("diets"),
+          exclude: recentlyShown,
+        };
+      }
+
+      function render(request) {
+        if (!request.mood) {
+          resultEl.innerHTML = `<div class="card"><p class="note">Pick a mood first — that's the whole trick.</p></div>`;
+          return;
+        }
+
+        const result = pick(request);
+        if (!result) {
+          resultEl.innerHTML = `<div class="card">
+            <h3>Nothing in the book fits that</h3>
+            <p class="blurb">Those dietary constraints rule out every dish here. Loosen one, or eat the
+            most appealing thing within arm's reach — that is a legitimate answer.</p>
+          </div>`;
+          return;
+        }
+
+        const { dish, alternatives, relaxed } = result;
+        recentlyShown.push(dish.id);
+        if (recentlyShown.length > 4) recentlyShown.shift();
+
+        const effortWords = ["no cooking", "assembly only", "light cooking", "real cooking"];
+        resultEl.innerHTML = `<div class="card">
+          <h2>Eat this</h2>
+          <h3>${dish.name}</h3>
+          <p class="blurb">${dish.blurb}</p>
+          <div class="meta">
+            <span>${dish.minutes} min</span>
+            <span>${effortWords[dish.effort]}</span>
+            <span>${dish.size === "snack" ? "snack" : "full meal"}</span>
+          </div>
+          <p class="why">${dish.why}</p>
+          ${relaxed.length ? `<p class="note">Nothing matched exactly, so this is ${relaxed.join(" and ")}.</p>` : ""}
+          ${
+            alternatives.length
+              ? `<ul class="alts">${alternatives
+                  .map((alt) => `<li>Or: ${alt.dish.name}</li>`)
+                  .join("")}</ul>`
+              : ""
+          }
+          <button class="again" type="button" id="again">Something else</button>
+        </div>`;
+
+        document.getElementById("again").addEventListener("click", () => render(readRequest()));
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        recentlyShown.length = 0;
+        render(readRequest());
+      });
+    </script>
+  </body>
+</html>

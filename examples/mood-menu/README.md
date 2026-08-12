@@ -1,0 +1,78 @@
+# Mood Menu
+
+A small web app that answers one question: *given how you feel right now, what should
+you eat?* You pick a mood and say what you actually have — time, energy for cooking,
+how hungry you are, any dietary lines you don't cross — and it names one dish, with a
+sentence explaining why that dish suits that mood.
+
+It is built for anyone who is hungry and stuck on the deciding. Decision fatigue at
+dinnertime is not a gendered trait, and nothing in here assumes it is.
+
+## Running it
+
+The app is plain HTML and ES modules, no build step and no dependencies. Because it
+imports JavaScript modules, it needs to be served over HTTP rather than opened from
+the filesystem:
+
+```bash
+cd examples/mood-menu
+python3 -m http.server 8000
+# then open http://localhost:8000
+```
+
+## Running the tests
+
+```bash
+cd examples/mood-menu
+node --test
+```
+
+The tests cover the recommendation engine and validate the dish catalogue itself —
+that every dish is well formed, that moods only reference real mood ids, and that
+every mood has at least four dishes behind it so the answers don't get repetitive.
+
+## How the recommendation works
+
+`engine.js` is the whole model, and it is deliberately small enough to read.
+
+1. **Mood fit.** Each dish scores 0–3 against each mood it suits. A dish scoring 0 for
+   your mood is not a candidate at all.
+2. **Tag affinity.** Small ±1 nudges break ties between dishes that fit the mood
+   equally well. Queasy pushes broth and gentle up and rich and spicy down; drained
+   rewards freezer food and penalises anything described as a project.
+3. **Hard constraints.** Time, effort, portion size and diet are filters, not
+   preferences.
+4. **Relaxation.** If the constraints leave nothing, they are dropped one at a time —
+   portion first, then effort, then time — and the UI says which one it gave up on.
+   Dietary constraints are never relaxed; "vegan" is not a suggestion.
+5. **Choosing.** Anything within 0.75 of the top score counts as an equally good
+   answer, and one is picked at random from that band. "Something else" excludes the
+   last few dishes shown, so pressing it gives a real alternative.
+
+`rank()` is pure and deterministic — the same request always produces the same ordered
+list. All the randomness lives in `pick()`, which takes an injectable rng so the tests
+can pin it.
+
+## Files
+
+| File              | What it is                                                 |
+| ----------------- | ---------------------------------------------------------- |
+| `index.html`      | The UI — form, result card, styling, light and dark themes  |
+| `dishes.js`       | Mood, diet and dish catalogue; the data the engine reasons over |
+| `engine.js`       | Scoring, filtering, relaxation and selection                |
+| `engine.test.mjs` | Tests for the engine and the catalogue                      |
+
+## Adding a dish
+
+Append an entry to `DISHES` in `dishes.js` following the shape documented at the top
+of that file, then run `node --test`. The catalogue tests will tell you if the mood
+ids, diet tags, or required copy are wrong.
+
+Two things worth honouring when you write one: keep `why` specific to the mood rather
+than generic food praise, and be honest in `minutes` and `effort` — a recommendation
+that lies about being quick is worse than no recommendation.
+
+## Scope
+
+These are suggestions, not nutrition or medical advice. The app deliberately says
+nothing about calories, weight, or "earning" food.

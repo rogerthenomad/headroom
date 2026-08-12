@@ -1,0 +1,11 @@
+{
+  "name": "mood-menu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mood-based food recommendation app — pick how you feel, get one dish to eat",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "serve": "python3 -m http.server 8000"
+  }
+}
