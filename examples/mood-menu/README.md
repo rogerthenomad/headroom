@@ -5,8 +5,16 @@ you eat?* You pick a mood and say what you actually have — time, energy for co
 how hungry you are, any dietary lines you don't cross — and it names one dish, with a
 sentence explaining why that dish suits that mood.
 
-It is built for anyone who is hungry and stuck on the deciding. Decision fatigue at
-dinnertime is not a gendered trait, and nothing in here assumes it is.
+It is built for women, which shows up in the substance rather than the styling:
+moods for cramping and bloating alongside the usual ten, dishes tagged with the
+nutrients that matter most across a cycle, and an optional cycle-phase input that
+weights the results toward iron, magnesium and slow carbs when that week calls for
+them.
+
+The cycle question is genuinely optional. `none` is the default, carries no weighting
+at all, and produces byte-identical results to omitting the field — so the app works
+exactly the same for anyone who isn't tracking, isn't cycling, or would simply rather
+not say. There is a test pinning that.
 
 ## Running it
 
@@ -40,14 +48,34 @@ every mood has at least four dishes behind it so the answers don't get repetitiv
 2. **Tag affinity.** Small ±1 nudges break ties between dishes that fit the mood
    equally well. Queasy pushes broth and gentle up and rich and spicy down; drained
    rewards freezer food and penalises anything described as a project.
-3. **Hard constraints.** Time, effort, portion size and diet are filters, not
+3. **Cycle weighting.** If a phase is given, dishes gain a bonus for the nutrients
+   that phase weights for. This reorders dishes that *already* suit your mood — it
+   never adds a dish the mood ruled out, and never filters one away.
+4. **Hard constraints.** Time, effort, portion size and diet are filters, not
    preferences.
-4. **Relaxation.** If the constraints leave nothing, they are dropped one at a time —
+5. **Relaxation.** If the constraints leave nothing, they are dropped one at a time —
    portion first, then effort, then time — and the UI says which one it gave up on.
    Dietary constraints are never relaxed; "vegan" is not a suggestion.
-5. **Choosing.** Anything within 0.75 of the top score counts as an equally good
+6. **Choosing.** Anything within 0.75 of the top score counts as an equally good
    answer, and one is picked at random from that band. "Something else" excludes the
    last few dishes shown, so pressing it gives a real alternative.
+
+### How solid is the cycle weighting?
+
+Worth being straight about, since the weights are visible in `engine.js` and someone
+will ask:
+
+- **Iron during menstruation** is the best-supported entry. Iron is lost with
+  menstrual bleeding, and women of reproductive age have a substantially higher daily
+  iron requirement than men — this one is uncontroversial.
+- **Calcium, folate and omega-3s** are weighted because women's intakes commonly fall
+  short of recommendations, not because of anything phase-specific.
+- **Luteal magnesium and slow carbs** reflect common dietary practice for PMS
+  symptoms. The evidence there is mixed and mostly from small trials — treat it as a
+  reasonable nudge, not a finding.
+
+Nothing here is a clinical tool. Persistent fatigue, heavy bleeding, or severe pain
+are worth a doctor's time, not a dinner suggestion.
 
 `rank()` is pure and deterministic — the same request always produces the same ordered
 list. All the randomness lives in `pick()`, which takes an injectable rng so the tests
@@ -58,7 +86,7 @@ can pin it.
 | File              | What it is                                                 |
 | ----------------- | ---------------------------------------------------------- |
 | `index.html`      | The UI — form, result card, styling, light and dark themes  |
-| `dishes.js`       | Mood, diet and dish catalogue; the data the engine reasons over |
+| `dishes.js`       | Mood, diet, cycle-phase and dish catalogue; the data the engine reasons over |
 | `engine.js`       | Scoring, filtering, relaxation and selection                |
 | `engine.test.mjs` | Tests for the engine and the catalogue                      |
 

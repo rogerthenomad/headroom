@@ -1,11 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { DISHES, DIETS, MOODS } from "./dishes.js";
-import { pick, rank } from "./engine.js";
+import { CYCLE_PHASES, DISHES, DIETS, MOODS } from "./dishes.js";
+import { cycleReasons, pick, rank } from "./engine.js";
 
 const moodIds = new Set(MOODS.map((m) => m.id));
 const dietIds = new Set(DIETS.map((d) => d.id));
+const NUTRIENTS = new Set([
+  "iron",
+  "protein",
+  "magnesium",
+  "calcium",
+  "folate",
+  "fibre",
+  "omega3",
+  "complexCarbs",
+]);
 
 test("every dish is well formed", () => {
   const seen = new Set();
@@ -21,6 +31,10 @@ test("every dish is well formed", () => {
     }
     for (const diet of dish.diet) {
       assert.ok(dietIds.has(diet), `${dish.id} claims unknown diet ${diet}`);
+    }
+    assert.ok(Array.isArray(dish.nutrition), `${dish.id} is missing a nutrition list`);
+    for (const nutrient of dish.nutrition) {
+      assert.ok(NUTRIENTS.has(nutrient), `${dish.id} claims unknown nutrient ${nutrient}`);
     }
     // Vegan implies vegetarian; both imply nothing about gluten, so only this one.
     if (dish.diet.includes("vegan")) {
@@ -83,6 +97,53 @@ test("only dishes that suit the mood are offered", () => {
   // Rich and spicy dishes are penalised hard enough to stay off the podium.
   const top = results.slice(0, 3).map((r) => r.dish.id);
   assert.ok(!top.includes("dan-dan"), "spicy noodles should not top the queasy list");
+});
+
+test("skipping the cycle question changes nothing", () => {
+  const request = { mood: "low", minutes: 90, effort: 3 };
+  const withoutField = rank(request).results.map((r) => [r.dish.id, r.score]);
+  const explicitNone = rank({ ...request, cycle: "none" }).results.map((r) => [r.dish.id, r.score]);
+  assert.deepEqual(withoutField, explicitNone);
+});
+
+test("cycle phase reorders without overriding mood", () => {
+  const request = { mood: "drained", minutes: 90, effort: 3 };
+  const neutral = rank(request).results;
+  const period = rank({ ...request, cycle: "menstrual" }).results;
+
+  // Same candidate set — the phase is a preference, not a filter.
+  assert.deepEqual(
+    neutral.map((r) => r.dish.id).sort(),
+    period.map((r) => r.dish.id).sort(),
+  );
+  // ...but it does move iron up the list.
+  const ironRank = (results) => results.findIndex((r) => r.dish.nutrition.includes("iron"));
+  assert.ok(ironRank(period) <= ironRank(neutral), "menstrual phase should favour iron");
+  assert.ok(period.every((r) => (r.dish.moods.drained ?? 0) > 0), "mood fit still gates entry");
+});
+
+test("every cycle phase is a known key with sane weighting", () => {
+  const ironDish = DISHES.find((d) => d.id === "steak-frites");
+  for (const phase of CYCLE_PHASES) {
+    const { results } = rank({ mood: "drained", minutes: 90, effort: 3, cycle: phase.id });
+    assert.ok(results.length > 0, `${phase.id} produced nothing`);
+    for (const { score } of results) {
+      assert.ok(Number.isFinite(score), `${phase.id} produced a non-finite score`);
+    }
+  }
+  assert.deepEqual(cycleReasons(ironDish, "none"), []);
+  assert.deepEqual(cycleReasons(ironDish, "menstrual").sort(), ["iron", "protein"]);
+});
+
+test("pick surfaces the nutrients behind a cycle-weighted choice", () => {
+  const result = pick(
+    { mood: "drained", minutes: 90, effort: 3, cycle: "menstrual" },
+    () => 0,
+  );
+  assert.ok(result.nutrients.length > 0, "expected an explanation for the top pick");
+  for (const nutrient of result.nutrients) {
+    assert.ok(result.dish.nutrition.includes(nutrient));
+  }
 });
 
 test("mood changes the answer", () => {

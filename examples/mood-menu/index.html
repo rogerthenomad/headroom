@@ -45,6 +45,21 @@
         color: var(--muted);
         max-width: 34rem;
       }
+      header .lede {
+        color: var(--accent);
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+      }
+      .optional {
+        font-size: 0.72rem;
+        letter-spacing: 0.02em;
+        text-transform: none;
+        padding: 0.1rem 0.45rem;
+        margin-left: 0.35rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
       h1 {
         font-size: clamp(2rem, 6vw, 2.75rem);
         margin: 0 0 0.35rem;
@@ -200,9 +215,11 @@
     <main>
       <header>
         <h1>Mood Menu</h1>
+        <p class="lede">Food that meets you where you are. Made for women.</p>
         <p>
-          Hungry, and the deciding is the hard part? Say how you feel and what you've
-          actually got — time, energy, patience — and get one answer instead of forty.
+          Say how you feel and what you've actually got — time, energy, patience — and
+          get one answer instead of forty. Tell it where you are in your cycle and it
+          leans toward the iron, magnesium and slow carbs that week actually calls for.
         </p>
       </header>
 
@@ -236,6 +253,13 @@
           </fieldset>
         </div>
 
+        <fieldset>
+          <legend>
+            <h2>Where you are in your cycle <span class="optional">optional</span></h2>
+          </legend>
+          <div class="chips" id="cycle"></div>
+        </fieldset>
+
         <button class="go" type="submit">Tell me what to eat</button>
       </form>
 
@@ -248,8 +272,19 @@
     </main>
 
     <script type="module">
-      import { MOODS, DIETS } from "./dishes.js";
+      import { MOODS, DIETS, CYCLE_PHASES } from "./dishes.js";
       import { pick } from "./engine.js";
+
+      const NUTRIENT_LABELS = {
+        iron: "iron",
+        protein: "protein",
+        magnesium: "magnesium",
+        calcium: "calcium",
+        folate: "folate",
+        fibre: "fibre",
+        omega3: "omega-3s",
+        complexCarbs: "slow carbs",
+      };
 
       const TIMES = [
         { value: 5, label: "5 min", hint: "no cooking" },
@@ -289,6 +324,7 @@
       chips(document.getElementById("effort"), "effort", "radio", EFFORTS, 2);
       chips(document.getElementById("size"), "size", "radio", SIZES, "any");
       chips(document.getElementById("diets"), "diets", "checkbox", asItems(DIETS));
+      chips(document.getElementById("cycle"), "cycle", "radio", asItems(CYCLE_PHASES), "none");
 
       const form = document.getElementById("form");
       const resultEl = document.getElementById("result");
@@ -302,6 +338,7 @@
           effort: Number(data.get("effort")),
           size: data.get("size"),
           diets: data.getAll("diets"),
+          cycle: data.get("cycle"),
           exclude: recentlyShown,
         };
       }
@@ -322,7 +359,7 @@
           return;
         }
 
-        const { dish, alternatives, relaxed } = result;
+        const { dish, alternatives, relaxed, nutrients } = result;
         recentlyShown.push(dish.id);
         if (recentlyShown.length > 4) recentlyShown.shift();
 
@@ -337,6 +374,13 @@
             <span>${dish.size === "snack" ? "snack" : "full meal"}</span>
           </div>
           <p class="why">${dish.why}</p>
+          ${
+            nutrients.length
+              ? `<p class="note">Good for this week: ${nutrients
+                  .map((n) => NUTRIENT_LABELS[n] ?? n)
+                  .join(", ")}.</p>`
+              : ""
+          }
           ${relaxed.length ? `<p class="note">Nothing matched exactly, so this is ${relaxed.join(" and ")}.</p>` : ""}
           ${
             alternatives.length

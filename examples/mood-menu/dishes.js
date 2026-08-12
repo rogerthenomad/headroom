@@ -2,16 +2,18 @@
  * Dish catalogue for Mood Menu.
  *
  * Each entry declares:
- *   id       stable slug, used for the "don't repeat myself" rotation
- *   name     what shows up on the card
- *   blurb    one line describing the dish
- *   why      the reason this dish suits the moods it scores well on
- *   moods    mood id -> fit score, 0..3 (3 = this is the dish for that mood)
- *   minutes  realistic hands-on + wait time
- *   effort   0 = unwrap it, 1 = assemble, 2 = light cooking, 3 = real cooking
- *   size     "snack" or "meal"
- *   diet     tags the dish satisfies: vegetarian, vegan, glutenFree, dairyFree
- *   tags     free-form descriptors used for small scoring nudges
+ *   id         stable slug, used for the "don't repeat myself" rotation
+ *   name       what shows up on the card
+ *   blurb      one line describing the dish
+ *   why        the reason this dish suits the moods it scores well on
+ *   moods      mood id -> fit score, 0..3 (3 = this is the dish for that mood)
+ *   minutes    realistic hands-on + wait time
+ *   effort     0 = unwrap it, 1 = assemble, 2 = light cooking, 3 = real cooking
+ *   size       "snack" or "meal"
+ *   diet       tags the dish satisfies: vegetarian, vegan, glutenFree, dairyFree
+ *   nutrition  nutrients the dish is a genuinely good source of; drives the
+ *              optional cycle-phase weighting in the engine
+ *   tags       free-form descriptors used for small mood-based scoring nudges
  */
 
 export const MOODS = [
@@ -23,6 +25,8 @@ export const MOODS = [
   { id: "foggy", label: "Foggy", hint: "can't focus, brain is mush" },
   { id: "restless", label: "Restless", hint: "bored, want something to happen" },
   { id: "queasy", label: "Queasy", hint: "off, delicate, maybe unwell" },
+  { id: "cramping", label: "Cramping", hint: "aching, sore, curled up" },
+  { id: "bloated", label: "Bloated", hint: "heavy, tight, nothing fits" },
   { id: "celebratory", label: "Celebratory", hint: "something good happened" },
   { id: "lonely", label: "Lonely", hint: "want comfort, want home" },
 ];
@@ -34,17 +38,31 @@ export const DIETS = [
   { id: "dairyFree", label: "Dairy-free" },
 ];
 
+/**
+ * Optional cycle context. Entirely skippable — "none" is the default and carries
+ * no weighting at all, so the app works the same for anyone who isn't tracking,
+ * isn't cycling, or would simply rather not say.
+ */
+export const CYCLE_PHASES = [
+  { id: "none", label: "Skip this", hint: "not tracking / rather not say" },
+  { id: "menstrual", label: "Period", hint: "days 1–5, bleeding" },
+  { id: "follicular", label: "Follicular", hint: "after your period, building up" },
+  { id: "ovulation", label: "Ovulation", hint: "mid-cycle" },
+  { id: "luteal", label: "Luteal", hint: "the week or so before" },
+];
+
 export const DISHES = [
   {
     id: "congee",
     name: "Rice congee with ginger and scallion",
     blurb: "Rice simmered soft in stock until it gives up entirely.",
     why: "Warm, bland in the good way, and it asks nothing of your stomach.",
-    moods: { queasy: 3, drained: 2, low: 2, lonely: 2, stressed: 1 },
+    moods: { queasy: 3, drained: 2, low: 2, lonely: 2, stressed: 1, cramping: 2, bloated: 2 },
     minutes: 35,
     effort: 2,
     size: "meal",
     diet: ["vegetarian", "vegan", "glutenFree", "dairyFree"],
+    nutrition: [],
     tags: ["warm", "soft", "gentle"],
   },
   {
@@ -57,6 +75,7 @@ export const DISHES = [
     effort: 1,
     size: "meal",
     diet: ["vegetarian"],
+    nutrition: ["protein", "folate"],
     tags: ["warm", "protein", "quick"],
   },
   {
@@ -64,11 +83,12 @@ export const DISHES = [
     name: "Miso soup with tofu and greens",
     blurb: "Hot broth, silky tofu, whatever leaf is in the fridge.",
     why: "Salty and hydrating — it settles you without sitting heavy.",
-    moods: { anxious: 3, queasy: 3, stressed: 2, drained: 2, low: 1 },
+    moods: { anxious: 3, queasy: 3, stressed: 2, drained: 2, low: 1, bloated: 2, cramping: 2 },
     minutes: 10,
     effort: 1,
     size: "meal",
     diet: ["vegetarian", "vegan", "dairyFree"],
+    nutrition: ["protein", "calcium", "iron"],
     tags: ["warm", "broth", "light"],
   },
   {
@@ -81,6 +101,7 @@ export const DISHES = [
     effort: 2,
     size: "meal",
     diet: ["vegetarian"],
+    nutrition: ["calcium", "protein", "complexCarbs"],
     tags: ["warm", "carbs", "comfort"],
   },
   {
@@ -93,6 +114,7 @@ export const DISHES = [
     effort: 2,
     size: "meal",
     diet: ["vegetarian", "dairyFree"],
+    nutrition: ["fibre", "protein"],
     tags: ["spicy", "warm", "leftovers"],
   },
   {
@@ -105,6 +127,7 @@ export const DISHES = [
     effort: 2,
     size: "meal",
     diet: ["dairyFree"],
+    nutrition: ["protein", "iron"],
     tags: ["spicy", "warm", "noodles"],
   },
   {
@@ -112,11 +135,12 @@ export const DISHES = [
     name: "Yogurt with honey, walnuts and fruit",
     blurb: "Thick yogurt, a spoon of honey, something crunchy.",
     why: "Protein and a little sugar without a sugar crash twenty minutes later.",
-    moods: { foggy: 3, anxious: 2, drained: 2, queasy: 1, restless: 1 },
+    moods: { foggy: 3, anxious: 2, drained: 2, queasy: 1, restless: 1, bloated: 1 },
     minutes: 4,
     effort: 0,
     size: "snack",
     diet: ["vegetarian", "glutenFree"],
+    nutrition: ["protein", "calcium", "magnesium"],
     tags: ["cold", "protein", "quick"],
   },
   {
@@ -124,11 +148,12 @@ export const DISHES = [
     name: "Oatmeal with brown sugar and salt",
     blurb: "Oats cooked in milk or water until they go creamy.",
     why: "Slow carbs that hold a steady line instead of spiking and dropping you.",
-    moods: { anxious: 3, low: 2, drained: 2, queasy: 2, lonely: 2 },
+    moods: { anxious: 3, low: 2, drained: 2, queasy: 2, lonely: 2, cramping: 2 },
     minutes: 10,
     effort: 1,
     size: "meal",
     diet: ["vegetarian"],
+    nutrition: ["fibre", "magnesium", "complexCarbs", "iron"],
     tags: ["warm", "soft", "carbs"],
   },
   {
@@ -136,11 +161,12 @@ export const DISHES = [
     name: "Chicken soup with noodles",
     blurb: "Stock, shredded chicken, noodles, far too much dill.",
     why: "The single most reliable thing to eat when you feel fragile.",
-    moods: { queasy: 3, lonely: 3, low: 3, drained: 2, stressed: 2 },
+    moods: { queasy: 3, lonely: 3, low: 3, drained: 2, stressed: 2, cramping: 2 },
     minutes: 40,
     effort: 3,
     size: "meal",
     diet: ["dairyFree"],
+    nutrition: ["protein"],
     tags: ["warm", "broth", "comfort"],
   },
   {
@@ -153,6 +179,7 @@ export const DISHES = [
     effort: 2,
     size: "meal",
     diet: ["vegetarian"],
+    nutrition: ["calcium", "protein"],
     tags: ["warm", "comfort", "cheese"],
   },
   {
@@ -165,6 +192,7 @@ export const DISHES = [
     effort: 1,
     size: "snack",
     diet: ["vegetarian", "vegan", "dairyFree"],
+    nutrition: ["fibre", "folate", "magnesium"],
     tags: ["quick", "fresh"],
   },
   {
@@ -172,12 +200,39 @@ export const DISHES = [
     name: "Red lentil dal with rice",
     blurb: "Lentils cooked down with cumin, garlic and a hit of ghee or oil.",
     why: "Soft, warm and filling, and it reheats for three more days.",
-    moods: { low: 2, lonely: 2, drained: 3, stressed: 2, queasy: 1 },
+    moods: { low: 2, lonely: 2, drained: 3, stressed: 2, queasy: 1, cramping: 2 },
     minutes: 35,
     effort: 2,
     size: "meal",
     diet: ["vegetarian", "vegan", "glutenFree", "dairyFree"],
+    nutrition: ["iron", "fibre", "folate", "protein"],
     tags: ["warm", "soft", "batch"],
+  },
+  {
+    id: "spinach-chickpea-curry",
+    name: "Spinach and chickpea curry",
+    blurb: "Chickpeas, a mountain of spinach, tomato, plenty of spice.",
+    why: "About as much iron and folate as you can get into one forgiving pan.",
+    moods: { drained: 3, low: 2, cramping: 2, foggy: 2, restless: 1, lonely: 1 },
+    minutes: 30,
+    effort: 2,
+    size: "meal",
+    diet: ["vegetarian", "vegan", "glutenFree", "dairyFree"],
+    nutrition: ["iron", "folate", "fibre", "protein"],
+    tags: ["warm", "batch", "spicy"],
+  },
+  {
+    id: "salmon-greens",
+    name: "Roast salmon with greens and lemon",
+    blurb: "A fillet, a hot oven, whatever green thing needs using up.",
+    why: "Omega-3s and real protein for twenty minutes of almost no work.",
+    moods: { foggy: 3, drained: 2, low: 2, bloated: 2, celebratory: 2, cramping: 1 },
+    minutes: 22,
+    effort: 2,
+    size: "meal",
+    diet: ["glutenFree", "dairyFree"],
+    nutrition: ["omega3", "protein", "calcium", "iron"],
+    tags: ["warm", "fresh", "protein"],
   },
   {
     id: "roast-chicken-dinner",
@@ -189,18 +244,20 @@ export const DISHES = [
     effort: 3,
     size: "meal",
     diet: ["glutenFree", "dairyFree"],
+    nutrition: ["protein", "iron"],
     tags: ["warm", "project", "leftovers"],
   },
   {
     id: "steak-frites",
     name: "Steak and fries",
     blurb: "Hot pan, hard sear, salted fries, mustard.",
-    why: "A dish that acknowledges something happened today.",
-    moods: { celebratory: 3, angry: 2, drained: 1, restless: 1 },
+    why: "A dish that acknowledges something happened today — and the best iron on the list.",
+    moods: { celebratory: 3, angry: 2, drained: 1, restless: 1, cramping: 1 },
     minutes: 30,
     effort: 3,
     size: "meal",
     diet: ["glutenFree"],
+    nutrition: ["iron", "protein"],
     tags: ["protein", "rich"],
   },
   {
@@ -213,6 +270,7 @@ export const DISHES = [
     effort: 2,
     size: "meal",
     diet: ["vegetarian", "vegan", "dairyFree"],
+    nutrition: ["fibre", "calcium"],
     tags: ["cold", "fresh", "noodles"],
   },
   {
@@ -220,11 +278,12 @@ export const DISHES = [
     name: "Banana with peanut butter",
     blurb: "A banana. Peanut butter. That's the whole recipe.",
     why: "Zero decisions, zero cleanup, and it stops the shakes.",
-    moods: { drained: 3, foggy: 3, anxious: 2, queasy: 2 },
+    moods: { drained: 3, foggy: 3, anxious: 2, queasy: 2, cramping: 1 },
     minutes: 2,
     effort: 0,
     size: "snack",
     diet: ["vegetarian", "vegan", "glutenFree", "dairyFree"],
+    nutrition: ["magnesium", "protein", "fibre"],
     tags: ["quick", "protein"],
   },
   {
@@ -237,6 +296,7 @@ export const DISHES = [
     effort: 0,
     size: "snack",
     diet: ["vegetarian"],
+    nutrition: ["calcium"],
     tags: ["cold", "salty", "graze"],
   },
   {
@@ -244,11 +304,25 @@ export const DISHES = [
     name: "Ginger tea and dry toast",
     blurb: "Fresh ginger steeped in hot water, plain toast alongside.",
     why: "When your stomach is negotiating, start small and warm.",
-    moods: { queasy: 3, anxious: 2, drained: 1 },
+    moods: { queasy: 3, anxious: 2, drained: 1, bloated: 3, cramping: 2 },
     minutes: 8,
     effort: 1,
     size: "snack",
     diet: ["vegetarian", "vegan", "dairyFree"],
+    nutrition: [],
+    tags: ["warm", "gentle", "hydrating"],
+  },
+  {
+    id: "peppermint-tea-crackers",
+    name: "Peppermint tea and plain crackers",
+    blurb: "Hot peppermint, something dry and salty to go with it.",
+    why: "Peppermint is one of the few things that reliably helps a tight, gassy stomach.",
+    moods: { bloated: 3, queasy: 2, anxious: 2, cramping: 2, stressed: 1 },
+    minutes: 6,
+    effort: 0,
+    size: "snack",
+    diet: ["vegetarian", "vegan", "dairyFree"],
+    nutrition: [],
     tags: ["warm", "gentle", "hydrating"],
   },
   {
@@ -261,6 +335,7 @@ export const DISHES = [
     effort: 2,
     size: "meal",
     diet: ["vegetarian", "glutenFree", "dairyFree"],
+    nutrition: ["iron", "protein", "folate"],
     tags: ["warm", "spicy", "protein"],
   },
   {
@@ -268,11 +343,12 @@ export const DISHES = [
     name: "A genuinely big salad",
     blurb: "Greens, a grain, something roasted, a real dressing, nuts.",
     why: "Bright and crunchy — it wakes you up when everything feels grey and heavy.",
-    moods: { foggy: 3, restless: 2, stressed: 1, low: 1 },
+    moods: { foggy: 3, restless: 2, stressed: 1, low: 1, bloated: 1 },
     minutes: 20,
     effort: 2,
     size: "meal",
     diet: ["vegetarian", "vegan", "glutenFree", "dairyFree"],
+    nutrition: ["fibre", "folate", "magnesium", "iron"],
     tags: ["cold", "fresh", "crunch"],
   },
   {
@@ -285,6 +361,7 @@ export const DISHES = [
     effort: 1,
     size: "meal",
     diet: ["dairyFree"],
+    nutrition: ["protein"],
     tags: ["warm", "freezer", "quick"],
   },
   {
@@ -297,6 +374,7 @@ export const DISHES = [
     effort: 1,
     size: "snack",
     diet: ["vegetarian", "glutenFree"],
+    nutrition: ["fibre"],
     tags: ["salty", "crunch", "graze"],
   },
   {
@@ -304,11 +382,12 @@ export const DISHES = [
     name: "Banana, berry and yogurt smoothie",
     blurb: "Frozen fruit, yogurt or oat milk, blitzed.",
     why: "Cold and easy to get down when chewing feels like too much.",
-    moods: { queasy: 2, drained: 2, foggy: 2, anxious: 1 },
+    moods: { queasy: 2, drained: 2, foggy: 2, anxious: 1, bloated: 1 },
     minutes: 5,
     effort: 1,
     size: "snack",
     diet: ["vegetarian", "glutenFree"],
+    nutrition: ["calcium", "fibre", "magnesium"],
     tags: ["cold", "hydrating", "quick"],
   },
   {
@@ -316,11 +395,12 @@ export const DISHES = [
     name: "Pho (or the nearest good takeout broth)",
     blurb: "Deep broth, rice noodles, a pile of herbs and lime.",
     why: "Hot broth and herbs do more for a rough day than almost anything else.",
-    moods: { queasy: 3, low: 2, lonely: 3, drained: 2, stressed: 2 },
+    moods: { queasy: 3, low: 2, lonely: 3, drained: 2, stressed: 2, cramping: 2 },
     minutes: 20,
     effort: 0,
     size: "meal",
     diet: ["dairyFree", "glutenFree"],
+    nutrition: ["protein", "iron"],
     tags: ["warm", "broth", "takeout"],
   },
   {
@@ -333,6 +413,7 @@ export const DISHES = [
     effort: 1,
     size: "meal",
     diet: ["vegetarian", "glutenFree"],
+    nutrition: ["complexCarbs", "fibre", "calcium"],
     tags: ["warm", "comfort", "hands-off"],
   },
   {
@@ -345,6 +426,7 @@ export const DISHES = [
     effort: 2,
     size: "meal",
     diet: ["glutenFree", "dairyFree"],
+    nutrition: ["protein", "fibre"],
     tags: ["sharing", "fresh"],
   },
   {
@@ -352,11 +434,12 @@ export const DISHES = [
     name: "Dark chocolate and an orange",
     blurb: "Two squares of good chocolate, one cold orange.",
     why: "A small, sharp, sweet full stop that isn't a whole dessert.",
-    moods: { low: 2, stressed: 2, celebratory: 1, restless: 1 },
+    moods: { low: 2, stressed: 2, celebratory: 1, restless: 1, cramping: 2 },
     minutes: 2,
     effort: 0,
     size: "snack",
     diet: ["vegetarian", "vegan", "glutenFree", "dairyFree"],
+    nutrition: ["magnesium", "iron"],
     tags: ["sweet", "cold", "quick"],
   },
   {
@@ -369,6 +452,7 @@ export const DISHES = [
     effort: 3,
     size: "meal",
     diet: ["vegetarian", "glutenFree"],
+    nutrition: ["calcium", "complexCarbs"],
     tags: ["warm", "project", "meditative"],
   },
   {
@@ -376,11 +460,12 @@ export const DISHES = [
     name: "White bean and greens soup",
     blurb: "Beans, stock, a parmesan rind if you have one, kale at the end.",
     why: "Cheap, filling, forgiving, and it makes enough for tomorrow.",
-    moods: { drained: 2, low: 2, stressed: 2, lonely: 2, queasy: 1 },
+    moods: { drained: 2, low: 2, stressed: 2, lonely: 2, queasy: 1, cramping: 1 },
     minutes: 35,
     effort: 2,
     size: "meal",
     diet: ["vegetarian", "glutenFree", "dairyFree"],
+    nutrition: ["iron", "fibre", "folate", "protein", "calcium"],
     tags: ["warm", "batch", "broth"],
   },
   {
@@ -393,6 +478,7 @@ export const DISHES = [
     effort: 2,
     size: "meal",
     diet: ["vegetarian"],
+    nutrition: ["complexCarbs", "calcium"],
     tags: ["sweet", "warm", "comfort"],
   },
 ];
